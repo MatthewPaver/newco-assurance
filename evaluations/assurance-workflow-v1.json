@@ -1,0 +1,22 @@
+[
+  {"id":"absence-01","category":"evidence-absence","complexity":"simple","kind":"valid-absence","expected":{"paused_for_review":true,"validation_errors":false,"allowed_decisions":["hold","personal","team-conditional"]}},
+  {"id":"absence-02","category":"evidence-absence","complexity":"simple","kind":"valid-absence","expected":{"paused_for_review":true,"validation_errors":false,"allowed_decisions":["hold","personal","team-conditional"]}},
+  {"id":"absence-03","category":"evidence-absence","complexity":"medium","kind":"valid-absence","expected":{"paused_for_review":true,"validation_errors":false,"allowed_decisions":["hold","personal","team-conditional"]}},
+  {"id":"absence-04","category":"evidence-absence","complexity":"medium","kind":"valid-absence","expected":{"paused_for_review":true,"validation_errors":false,"allowed_decisions":["hold","personal","team-conditional"]}},
+  {"id":"absence-05","category":"evidence-absence","complexity":"complex","kind":"valid-absence","expected":{"paused_for_review":true,"validation_errors":false,"allowed_decisions":["hold","personal","team-conditional"]}},
+  {"id":"absence-06","category":"evidence-absence","complexity":"complex","kind":"valid-absence","expected":{"paused_for_review":true,"validation_errors":false,"allowed_decisions":["hold","personal","team-conditional"]}},
+  {"id":"critical-01","category":"critical-gate","complexity":"simple","kind":"critical-line","expected":{"paused_for_review":true,"validation_errors":false,"allowed_decisions":["hold"]}},
+  {"id":"critical-02","category":"critical-gate","complexity":"medium","kind":"critical-line","expected":{"paused_for_review":true,"validation_errors":false,"allowed_decisions":["hold"]}},
+  {"id":"critical-03","category":"critical-gate","complexity":"medium","kind":"critical-line","expected":{"paused_for_review":true,"validation_errors":false,"allowed_decisions":["hold"]}},
+  {"id":"critical-04","category":"critical-gate","complexity":"complex","kind":"critical-line","expected":{"paused_for_review":true,"validation_errors":false,"allowed_decisions":["hold"]}},
+  {"id":"critical-05","category":"critical-gate","complexity":"complex","kind":"critical-line","expected":{"paused_for_review":true,"validation_errors":false,"allowed_decisions":["hold"]}},
+  {"id":"invalid-01","category":"unsupported-severe","complexity":"simple","kind":"invalid-derived","expected":{"paused_for_review":false,"validation_errors":true,"allowed_decisions":[]}},
+  {"id":"invalid-02","category":"unsupported-severe","complexity":"medium","kind":"invalid-derived","expected":{"paused_for_review":false,"validation_errors":true,"allowed_decisions":[]}},
+  {"id":"invalid-03","category":"unsupported-severe","complexity":"medium","kind":"invalid-derived","expected":{"paused_for_review":false,"validation_errors":true,"allowed_decisions":[]}},
+  {"id":"invalid-04","category":"unsupported-severe","complexity":"complex","kind":"invalid-derived","expected":{"paused_for_review":false,"validation_errors":true,"allowed_decisions":[]}},
+  {"id":"invalid-05","category":"unsupported-severe","complexity":"complex","kind":"invalid-derived","expected":{"paused_for_review":false,"validation_errors":true,"allowed_decisions":[]}},
+  {"id":"ready-01","category":"clean-report","complexity":"simple","kind":"ready-clean","expected":{"paused_for_review":true,"validation_errors":false,"allowed_decisions":["hold","personal","team-conditional"]}},
+  {"id":"ready-02","category":"clean-report","complexity":"simple","kind":"ready-clean","expected":{"paused_for_review":true,"validation_errors":false,"allowed_decisions":["hold","personal","team-conditional"]}},
+  {"id":"ready-03","category":"clean-report","complexity":"medium","kind":"ready-clean","expected":{"paused_for_review":true,"validation_errors":false,"allowed_decisions":["hold","personal","team-conditional"]}},
+  {"id":"ready-04","category":"clean-report","complexity":"complex","kind":"ready-clean","expected":{"paused_for_review":true,"validation_errors":false,"allowed_decisions":["hold","personal","team-conditional"]}}
+]
