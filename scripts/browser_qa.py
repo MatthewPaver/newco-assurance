@@ -36,7 +36,7 @@ def run():
         )
         desktop.goto(BASE_URL, wait_until="networkidle")
         assert desktop.title().startswith("Newco Assurance")
-        assert desktop.get_by_role("heading", name="Know what your organisation can rely on.").is_visible()
+        assert desktop.get_by_role("heading", name="Can this AI tool go live?").is_visible()
         assert desktop.get_by_text("Browser-local", exact=True).is_visible()
         assert desktop.locator(".case-card").count() == 4
         assert_no_horizontal_overflow(desktop)
@@ -97,7 +97,7 @@ def run():
 
         mobile = browser.new_page(viewport={"width": 390, "height": 844}, device_scale_factor=1)
         mobile.goto(BASE_URL, wait_until="networkidle")
-        assert mobile.get_by_role("heading", name="Know what your organisation can rely on.").is_visible()
+        assert mobile.get_by_role("heading", name="Can this AI tool go live?").is_visible()
         assert mobile.locator(".case-card").count() == 4
         assert_no_horizontal_overflow(mobile)
         mobile.locator('[data-scenario-id="weekly-status"]').get_by_role(

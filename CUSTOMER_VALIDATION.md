@@ -18,6 +18,14 @@ Complete five interviews before expanding infrastructure:
 
 Give three reviewers the exported report without a product walkthrough.
 
+Packs ready to send (vault): `Product/leave-behind/Blind Review Packs — Ready to Send.md`
+
+| Pack | Scenario | Status |
+|---|---|---|
+| A | Secrets / catastrophic | Ready to send |
+| B | LLM data-leaving | Ready to send |
+| C | Known-good minimal | Ready to send |
+
 Record:
 
 - the decision they think the evidence supports;
