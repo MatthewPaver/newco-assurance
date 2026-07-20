@@ -36,7 +36,9 @@
         <span><b>Newco</b><small>ASSURANCE SYSTEM · PROTOTYPE 01</small></span>
       </a>
       <nav aria-label="Primary navigation">
-        <a href="#scanner">Run pre-flight</a>
+        <a href="#cases">Case lab</a>
+        <a href="#scanner">Pre-flight</a>
+        <a href="#business-case">Value test</a>
         <a href="#method">Method</a>
         <a href="#pilot">Pilot</a>
       </nav>
@@ -64,8 +66,8 @@
             <b>CONDITIONAL</b>
           </div>
           <div class="ticket-score">
-            <span>72</span>
-            <div><b>TEAM USE</b><small>with named conditions</small></div>
+            <span>3</span>
+            <div><b>FIX FIRST</b><small>before team reliance</small></div>
           </div>
           <ol>
             <li><span>01</span> Define the accountable owner</li>
@@ -81,6 +83,21 @@
         <span><b>02</b> Exact evidence</span>
         <span><b>03</b> Coverage disclosed</span>
         <span><b>04</b> People approve</span>
+      </section>
+
+      <section class="case-library" id="cases" aria-labelledby="cases-title">
+        <header class="section-heading">
+          <div>
+            <p class="eyebrow">Commercial evidence lab</p>
+            <h2 id="cases-title">Four workflows. Four decisions people recognise.</h2>
+          </div>
+          <p>
+            Each case is synthetic or uses official public data. Run the original, inspect the
+            evidence, then load the documented correction and compare the decision. These are
+            demonstration scenarios—not customer case studies.
+          </p>
+        </header>
+        <div class="case-grid" id="scenarioGrid"></div>
       </section>
 
       <section class="scanner" id="scanner" aria-labelledby="scanner-heading">
@@ -153,6 +170,16 @@
               <i aria-hidden="true">→</i>
             </button>
 
+            <aside class="active-case" id="activeCase" hidden>
+              <span id="activeCaseType">DEMONSTRATION SCENARIO</span>
+              <h3 id="activeCaseTitle">Case title</h3>
+              <p id="activeCaseTrigger"></p>
+              <dl>
+                <div><dt>User</dt><dd id="activeCaseRole"></dd></div>
+                <div><dt>Evidence</dt><dd id="activeCaseSource"></dd></div>
+              </dl>
+            </aside>
+
             <p class="input-message" id="inputMessage" role="status">
               Choose a folder or load the sample to begin.
             </p>
@@ -178,10 +205,22 @@
                 <p class="eyebrow">Assurance result</p>
                 <h3 id="report-title"><span id="resultLabel">Conditional</span> for <span id="relianceLabel">team</span> use</h3>
               </div>
-              <div class="score-disc"><b id="scoreValue">0</b><span>/100</span></div>
+              <div class="score-disc" aria-label="Uncalibrated static-rule indicator">
+                <b id="scoreValue">0</b><span>/100<br />static<br />unvalidated</span>
+              </div>
             </div>
 
             <div class="report-metrics" id="reportMetrics" aria-label="Finding counts"></div>
+
+            <section class="reassessment" id="reassessmentPanel" hidden aria-labelledby="reassessment-title">
+              <div>
+                <p class="eyebrow">Before → after evidence</p>
+                <h4 id="reassessment-title">The finding is only useful if somebody can fix it.</h4>
+                <p id="reassessmentCopy"></p>
+              </div>
+              <div class="reassessment-delta" id="reassessmentDelta"></div>
+              <button class="button acid" id="runCorrected" type="button">Load documented fixes and reassess</button>
+            </section>
 
             <section class="fix-first" aria-labelledby="fix-first-title">
               <div class="report-section-title">
@@ -223,6 +262,7 @@
               <div class="coverage-grid">
                 <div><h4>Active coverage</h4><ul id="coverageList"></ul></div>
                 <div><h4>This did not happen</h4><ul id="limitsList"></ul></div>
+                <div><h4>Selected file coverage</h4><ul id="fileCoverageList"></ul></div>
               </div>
             </details>
 
@@ -277,6 +317,55 @@
         </div>
       </section>
 
+      <section class="business-case" id="business-case" aria-labelledby="business-case-title">
+        <header>
+          <div>
+            <p class="eyebrow">Buyer business case</p>
+            <h2 id="business-case-title">Test the value without inventing a security incident.</h2>
+          </div>
+          <p>
+            Use the buyer's own review and rework assumptions. Risk reduction, fines and avoided
+            incidents are deliberately excluded until the client supplies defensible evidence.
+          </p>
+        </header>
+        <div class="calculator-shell">
+          <form id="valueCalculator">
+            <label>Workflows reviewed each year
+              <input id="calcWorkflows" type="number" min="1" max="500" value="12" />
+            </label>
+            <label>Reviews per workflow each year
+              <input id="calcReviews" type="number" min="1" max="24" value="2" />
+            </label>
+            <label>Current review hours
+              <input id="calcReviewHours" type="number" min="0" max="100" step="0.5" value="4" />
+            </label>
+            <label>Late rework hours per workflow
+              <input id="calcReworkHours" type="number" min="0" max="500" step="0.5" value="8" />
+            </label>
+            <label>Loaded hourly cost (£)
+              <input id="calcHourlyCost" type="number" min="1" max="1000" value="65" />
+            </label>
+            <label>Approval delay to track (days)
+              <input id="calcApprovalDays" type="number" min="0" max="365" value="10" />
+            </label>
+            <label>Pilot investment (£)
+              <input id="calcPilotCost" type="number" min="0" max="1000000" value="7500" />
+            </label>
+          </form>
+          <div class="calculator-output" aria-live="polite">
+            <span>ASSUMPTION-BASED · NOT A CUSTOMER ROI CLAIM</span>
+            <div class="value-metrics">
+              <article><small>Review effort exposed</small><b id="calcReviewValue">£0</b></article>
+              <article><small>Late rework exposed</small><b id="calcReworkValue">£0</b></article>
+              <article><small>Quantified value pool</small><b id="calcValuePool">£0</b></article>
+              <article><small>Break-even effort</small><b id="calcBreakEven">0 hrs</b></article>
+            </div>
+            <p id="calcNarrative"></p>
+            <button class="button outline" id="downloadBusinessCase" type="button">Download assumptions</button>
+          </div>
+        </div>
+      </section>
+
       <section class="method" id="method" aria-labelledby="method-title">
         <div class="method-heading">
           <p class="eyebrow">How the full product earns trust</p>
@@ -316,19 +405,19 @@
 
       <section class="pilot" id="pilot" aria-labelledby="pilot-title">
         <div>
-          <p class="eyebrow">Controlled pilot</p>
-          <h2 id="pilot-title">Bring one useful workflow—not your whole estate.</h2>
+          <p class="eyebrow">Demand-test offer · £7,500 + VAT</p>
+          <h2 id="pilot-title">Three workflows. Fifteen business days. One real decision.</h2>
           <p>
-            Start with one sanitised AI-built project workflow. We map the intended reliance, produce
-            an evidence-linked report, review it with the builder and IT/Data owner, then re-scan after
-            the agreed fixes.
+            Select three sanitised AI-built project workflows. We map intended reliance, produce
+            evidence-linked reports, review them with the builders and IT/Data owner, then remediate
+            and re-check one. The price is a demand-test hypothesis, not validated list pricing.
           </p>
         </div>
         <ol>
-          <li><span>01</span><b>Context session</b><small>What is it meant to do and who will rely on it?</small></li>
-          <li><span>02</span><b>Evidence review</b><small>Data flow, fix-first list, coverage and limits.</small></li>
-          <li><span>03</span><b>Human readout</b><small>Permitted reliance, conditions and owners.</small></li>
-          <li><span>04</span><b>Re-scan</b><small>Show what changed before expanding use.</small></li>
+          <li><span>01</span><b>Three context records</b><small>Purpose, owner, data and intended reliance.</small></li>
+          <li><span>02</span><b>Three evidence reviews</b><small>Data flow, fix-first list, coverage and limits.</small></li>
+          <li><span>03</span><b>IT/Data/Risk readout</b><small>Permitted reliance, conditions and owners.</small></li>
+          <li><span>04</span><b>One remediation and re-check</b><small>Show what changed before expanding use.</small></li>
         </ol>
         <a class="button acid" href="mailto:mattpaver@outlook.com?subject=Newco%20controlled%20assurance%20pilot">Discuss a controlled pilot</a>
       </section>

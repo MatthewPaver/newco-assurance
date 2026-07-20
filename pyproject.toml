@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "newco-assurance"
+version = "0.2.0"
+description = "Human-controlled production-readiness assurance for AI-built project workflows"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Matthew Paver" }]
+dependencies = [
+  "langgraph>=0.6,<2",
+  "pydantic>=2.8,<3"
+]
+
+[project.optional-dependencies]
+observability = [
+  "langsmith[openai-agents]>=0.3.15,<1"
+]
+dev = [
+  "pytest>=8.3,<9",
+  "playwright>=1.52,<2"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

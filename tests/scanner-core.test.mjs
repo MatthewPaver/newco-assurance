@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { scanProject } from "../docs/scanner-core.js";
+import { SCENARIOS } from "../docs/samples.js";
 
 const base = [
   { path: "README.md", content: "# Tool\nRun it safely." },
@@ -85,4 +86,86 @@ test("an empty or unreadable folder fails closed", () => {
   assert.equal(report.score, 0);
   assert.equal(report.result, "Hold");
   assert.equal(report.source.fileCount, 0);
+});
+
+test("every commercial scenario moves through its declared decision arc", () => {
+  for (const scenario of SCENARIOS) {
+    const original = scanProject(scenario.originalFiles, {
+      intendedReliance: scenario.intendedReliance,
+      owner: scenario.owner,
+    });
+    const corrected = scanProject(scenario.correctedFiles, {
+      intendedReliance: scenario.intendedReliance,
+      owner: `${scenario.role} (named owner)`,
+    });
+    assert.equal(original.result, scenario.originalDecision, `${scenario.id} original`);
+    assert.equal(corrected.result, scenario.correctedDecision, `${scenario.id} corrected`);
+    assert.ok(corrected.findings.length < original.findings.length, `${scenario.id} findings reduce`);
+  }
+});
+
+test("skipped file paths and reasons remain in the report contract", () => {
+  const skippedFiles = [{ path: "build/large.bin", bytes: 2_000_000, reason: "larger than limit" }];
+  const report = scanProject(base, {
+    intendedReliance: "team",
+    owner: "Owner",
+    skippedFiles,
+  });
+  assert.deepEqual(report.source.skippedFiles, skippedFiles);
+  assert.equal(report.source.complete, false);
+  assert.match(report.limits.join(" "), /outside coverage/i);
+});
+
+test("floating dependencies and missing lock evidence remain visible", () => {
+  const report = scanProject(
+    [
+      ...base,
+      { path: "package.json", content: JSON.stringify({ dependencies: { openai: "latest" } }) },
+    ],
+    { intendedReliance: "team", owner: "Owner" }
+  );
+  assert.ok(report.findings.some((item) => item.id === "DEP-001"));
+  assert.ok(report.findings.some((item) => item.id === "DEP-002"));
+  assert.equal(report.result, "Conditional");
+});
+
+test("specialist SARIF results are imported with provenance and location", () => {
+  const sarif = {
+    version: "2.1.0",
+    runs: [
+      {
+        tool: { driver: { name: "Semgrep" } },
+        results: [
+          {
+            ruleId: "unsafe-eval",
+            level: "error",
+            message: { text: "Dynamic evaluation detected" },
+            locations: [
+              {
+                physicalLocation: {
+                  artifactLocation: { uri: "src/app.js" },
+                  region: { startLine: 12 },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+  const report = scanProject([...base, { path: "semgrep.sarif", content: JSON.stringify(sarif) }], {
+    intendedReliance: "team",
+    owner: "Owner",
+  });
+  const result = report.findings.find((item) => item.id === "SARIF-unsafe-eval");
+  assert.equal(result.file, "src/app.js");
+  assert.equal(result.line, 12);
+  assert.match(result.provenance, /Semgrep/);
+});
+
+test("the static indicator is explicitly uncalibrated", () => {
+  const report = scanProject(base, { intendedReliance: "team", owner: "Owner" });
+  assert.equal(report.indicator.value, report.score);
+  assert.match(report.indicator.calibrationStatus, /Not calibrated/);
+  assert.ok(report.source.includedFiles.every((item) => item.path && Number.isFinite(item.bytes)));
 });

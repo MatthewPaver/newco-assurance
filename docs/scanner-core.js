@@ -10,6 +10,7 @@ const TEXT_EXTENSIONS = new Set([
   "md",
   "mjs",
   "py",
+  "sarif",
   "sql",
   "toml",
   "ts",
@@ -29,6 +30,7 @@ const DIMENSIONS = [
 ];
 
 const SEVERITY_WEIGHT = { critical: 18, high: 10, medium: 5, low: 2 };
+const SARIF_LEVELS = { error: "high", warning: "medium", note: "low", none: "low" };
 
 function lineFor(content, offset) {
   return content.slice(0, offset).split(/\r?\n/).length;
@@ -53,8 +55,9 @@ function finding({
   line = null,
   evidence = "",
   provenance = "Static rule",
+  evidenceKind = line ? "line" : evidence ? "derived" : "absence",
 }) {
-  return { id, dimension, severity, title, why, action, file, line, evidence, provenance };
+  return { id, dimension, severity, title, why, action, file, line, evidence, provenance, evidenceKind };
 }
 
 function matchFirst(files, regex, details) {
@@ -90,6 +93,134 @@ function collectExternalDestinations(files) {
 
 function hasPath(files, pattern) {
   return files.some((file) => pattern.test(file.path));
+}
+
+function manifestFindings(files) {
+  const results = [];
+  const packageManifest = files.find((file) => /(^|\/)package\.json$/i.test(file.path));
+  if (packageManifest) {
+    try {
+      const parsed = JSON.parse(packageManifest.content);
+      const dependencies = {
+        ...(parsed.dependencies || {}),
+        ...(parsed.devDependencies || {}),
+        ...(parsed.optionalDependencies || {}),
+      };
+      const floating = Object.entries(dependencies)
+        .filter(([, version]) => ["*", "latest", "next"].includes(String(version).trim().toLowerCase()))
+        .map(([name]) => name);
+      if (floating.length) {
+        results.push(
+          finding({
+            id: "DEP-001",
+            dimension: "Robustness",
+            severity: "high",
+            title: "Dependencies use floating versions",
+            why: "A future install can resolve different code without the workflow itself changing.",
+            action: "Pin reviewed versions and commit the package-manager lock file.",
+            file: packageManifest.path,
+            evidence: floating.slice(0, 6).join(", "),
+          })
+        );
+      }
+      if (
+        Object.keys(dependencies).length &&
+        !hasPath(files, /(^|\/)(package-lock\.json|npm-shrinkwrap\.json|yarn\.lock|pnpm-lock\.yaml)$/i)
+      ) {
+        results.push(
+          finding({
+            id: "DEP-002",
+            dimension: "Robustness",
+            severity: "medium",
+            title: "JavaScript dependencies have no visible lock file",
+            why: "The inspected folder does not prove which exact dependency versions were installed.",
+            action: "Commit the lock file and run the organisation's approved dependency scanner.",
+            file: packageManifest.path,
+          })
+        );
+      }
+    } catch {
+      results.push(
+        finding({
+          id: "DEP-003",
+          dimension: "Robustness",
+          severity: "medium",
+          title: "Package manifest could not be parsed",
+          why: "Dependency evidence cannot be checked when the manifest is invalid.",
+          action: "Correct package.json and repeat the pre-flight.",
+          file: packageManifest.path,
+        })
+      );
+    }
+  }
+
+  for (const file of files.filter((item) => /(^|\/)requirements[^/]*\.txt$/i.test(item.path))) {
+    const unpinned = file.content
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith("#") && !/[<>=~!]=/.test(line));
+    if (unpinned.length) {
+      results.push(
+        finding({
+          id: "DEP-004",
+          dimension: "Robustness",
+          severity: "medium",
+          title: "Python dependencies are not version constrained",
+          why: "A future install can silently introduce different behavior or a vulnerable release.",
+          action: "Record reviewed version constraints and retain the resolved environment evidence.",
+          file: file.path,
+          evidence: unpinned.slice(0, 6).join(", "),
+        })
+      );
+      break;
+    }
+  }
+  return results;
+}
+
+function sarifFindings(files) {
+  const results = [];
+  for (const file of files.filter((item) => /\.sarif$/i.test(item.path))) {
+    try {
+      const parsed = JSON.parse(file.content);
+      for (const run of parsed.runs || []) {
+        const toolName = run.tool?.driver?.name || "Specialist engine";
+        for (const result of (run.results || []).slice(0, 50)) {
+          const location = result.locations?.[0]?.physicalLocation;
+          const sourceFile = location?.artifactLocation?.uri || file.path;
+          const line = location?.region?.startLine || null;
+          const message = result.message?.text || "Specialist engine finding";
+          results.push(
+            finding({
+              id: `SARIF-${result.ruleId || results.length + 1}`,
+              dimension: "Security",
+              severity: SARIF_LEVELS[result.level] || "medium",
+              title: message.slice(0, 110),
+              why: `${toolName} supplied an inspectable result; the authorised reviewer must still confirm applicability.`,
+              action: "Review the named rule and source location, remediate if applicable and retain the specialist report.",
+              file: sourceFile,
+              line,
+              evidence: result.ruleId ? `Rule ${result.ruleId}` : `Imported from ${file.path}`,
+              provenance: `Imported SARIF · ${toolName}`,
+            })
+          );
+        }
+      }
+    } catch {
+      results.push(
+        finding({
+          id: "SARIF-INVALID",
+          dimension: "Security",
+          severity: "medium",
+          title: "Specialist report could not be parsed",
+          why: "The report is present but cannot contribute trustworthy evidence.",
+          action: "Export valid SARIF 2.1 JSON and repeat the pre-flight.",
+          file: file.path,
+        })
+      );
+    }
+  }
+  return results;
 }
 
 function normalizeFiles(files) {
@@ -221,6 +352,17 @@ export function scanProject(inputFiles, context = {}) {
       },
     },
     {
+      regex: /\b(?:exec|spawn)\s*\([^)]*\{\s*shell\s*:\s*true|subprocess\.[a-z_]+\s*\([^)]*shell\s*=\s*True/is,
+      details: {
+        id: "SEC-005",
+        dimension: "Security",
+        severity: "high",
+        title: "A shell is enabled for command execution",
+        why: "Untrusted values reaching a shell can become operating-system commands.",
+        action: "Use an argument array without a shell and constrain every permitted command.",
+      },
+    },
+    {
       regex: /\.innerHTML\s*=/,
       details: {
         id: "SEC-004",
@@ -276,6 +418,8 @@ export function scanProject(inputFiles, context = {}) {
     );
   }
 
+  findings.push(...sarifFindings(files));
+
   const codeFiles = files.filter((file) => /(?:\.js|\.mjs|\.ts|\.tsx|\.py)$/.test(file.path));
   if (codeFiles.length && !codeFiles.some((file) => /\btry\b|\bcatch\b|except\s+/.test(file.content))) {
     findings.push(
@@ -291,7 +435,12 @@ export function scanProject(inputFiles, context = {}) {
     );
   }
 
-  findings.push(...documentationFindings(files), ...ownershipFindings(files, context), ...testFindings(files));
+  findings.push(
+    ...manifestFindings(files),
+    ...documentationFindings(files),
+    ...ownershipFindings(files, context),
+    ...testFindings(files)
+  );
   findings.sort((a, b) => SEVERITY_WEIGHT[b.severity] - SEVERITY_WEIGHT[a.severity] || a.id.localeCompare(b.id));
 
   const score = Math.max(
@@ -313,6 +462,7 @@ export function scanProject(inputFiles, context = {}) {
   else if (hasHigh || (intendedReliance === "production" && findings.length)) result = "Conditional";
 
   const fingerprintSeed = files.map((file) => `${file.path}:${file.size}:${file.content}`).join("|");
+  const skippedFiles = Array.isArray(context.skippedFiles) ? context.skippedFiles : [];
 
   return {
     schemaVersion: "newco.scan.v1",
@@ -321,6 +471,9 @@ export function scanProject(inputFiles, context = {}) {
       fileCount: files.length,
       byteCount: files.reduce((total, file) => total + file.size, 0),
       fingerprintSeed,
+      includedFiles: files.map((file) => ({ path: file.path, bytes: file.size })),
+      skippedFiles,
+      complete: skippedFiles.length === 0,
     },
     context: {
       intendedReliance,
@@ -328,9 +481,19 @@ export function scanProject(inputFiles, context = {}) {
     },
     result,
     score,
+    indicator: {
+      value: score,
+      label: "Uncalibrated static-rule indicator",
+      calibrationStatus: "Not calibrated against customer reviewer decisions",
+    },
     findings,
     fixFirst: findings.slice(0, 3),
-    coverage: DIMENSIONS.map((name) => ({ name, active: true, mode: "Static rules only" })),
+    coverage: DIMENSIONS.map((name) => ({
+      name,
+      active: true,
+      mode: "Static rules only",
+      findings: findings.filter((item) => item.dimension === name).length,
+    })),
     dataFlow: {
       input: "Local project folder",
       processing: "Browser-local static rules",
@@ -340,6 +503,9 @@ export function scanProject(inputFiles, context = {}) {
     limits: [
       "Files were read as text and were not uploaded or executed.",
       "No dependency vulnerability, runtime, penetration or infrastructure test was performed.",
+      skippedFiles.length
+        ? `${skippedFiles.length} file${skippedFiles.length === 1 ? " was" : "s were"} skipped and remain outside coverage.`
+        : "No selected files were skipped by the browser limits.",
       "The result is a pre-filter, not security, privacy, legal or production approval.",
       "Production reliance requires independent review outside this public prototype.",
     ],
