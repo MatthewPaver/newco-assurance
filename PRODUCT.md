@@ -7,11 +7,12 @@ A project professional has built an automation, dashboard or AI-assisted workflo
 ## Journey
 
 1. State intended reliance: personal, team or production.
-2. Add a local folder or load one of four share-safe cases.
+2. Add a local folder or load one of the share-safe cases.
 3. Inspect the fix-first list, data flow, coverage and exact evidence.
 4. Correct the build outside Newco and scan again. Demonstration cases provide a separate corrected fixture.
 5. A named person records the permitted reliance and conditions.
 6. Export an assurance record tied to a source fingerprint.
+7. After the Sprint: capture the next plain-English idea in the **Idea Greenhouse** and draft a System Record — still not approval.
 
 ## Release gates
 
@@ -23,6 +24,7 @@ A project professional has built an automation, dashboard or AI-assisted workflo
 - The numeric static-rule indicator is labelled as uncalibrated.
 - Human approval cannot be inferred.
 - Production approval is unavailable in the public prototype.
+- Greenhouse drafts are triage only — never silent corpus writes.
 - Deterministic tests cover rule behavior and reliance outcomes.
 - Desktop, 390px and no-JavaScript browser paths are checked.
 - The LangGraph reference pauses before a decision and rejects unsupported severe claims.
@@ -30,4 +32,8 @@ A project professional has built an automation, dashboard or AI-assisted workflo
 
 ## Commercial hypothesis
 
-A controlled pilot reviews three sanitised workflows over 15 business days, includes an IT/Data/Risk readout and remediates and re-checks one workflow. Demand-test price: £7,500 + VAT. Do not treat this as validated list pricing until a buyer pays it and gives a clear rebuy answer.
+Lead offer is the **AI Production-Readiness Sprint** (fixed scope). Demand-test band in the vault is £2,500–£5,000 pending founder lock; older £7,500 pilot figures are historical hypotheses only. Do not treat any figure as validated list pricing until a buyer pays and gives a clear rebuy answer.
+
+## Positioning
+
+Newco is not another vibe-app scanner. We help IT, Data and PMO decide how far a named AI-built tool may be relied on — and leave a human-owned record. The Scanner is the engine; the Sprint is the product.
